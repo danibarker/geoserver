@@ -102,7 +102,8 @@ public class SystemTestData extends CiteTestData {
         public static LayerProperty<String> STYLE = new LayerProperty<String>();
         public static LayerProperty<ReferencedEnvelope> ENVELOPE = new LayerProperty<ReferencedEnvelope>();
         public static LayerProperty<ReferencedEnvelope> LATLON_ENVELOPE = new LayerProperty<ReferencedEnvelope>();
-        public static LayerProperty<Integer> SRS = new LayerProperty<Integer>();
+        public static LayerProperty<Integer> DECLARED_SRS = new LayerProperty<Integer>();
+        public static LayerProperty<Integer> NATIVE_SRS = new LayerProperty<Integer>();
     }
     
     /**
@@ -589,15 +590,17 @@ public class SystemTestData extends CiteTestData {
         featureType.setTitle(name);
         featureType.setAbstract("abstract about " + name);
 
-        Integer srs = LayerProperty.SRS.get(props, SRS.get(qName));
-        if ( srs == null ) {
-            srs = 4326;
+        Integer declaredSrs = LayerProperty.DECLARED_SRS.get(props, SRS.get(qName));
+        Integer nativeSrs = LayerProperty.NATIVE_SRS.get(props, declaredSrs);
+        
+        if ( declaredSrs == null ) {
+            declaredSrs = 4326;
         }
-        featureType.setSRS("EPSG:" + srs);
+        featureType.setSRS("EPSG:" + declaredSrs);
         try {
-            featureType.setNativeCRS(CRS.decode("EPSG:" + srs));
+            featureType.setNativeCRS(CRS.decode("EPSG:" + nativeSrs));
         } catch (Exception e) {
-            LOGGER.warning("Failed to decode EPSG:" + srs + ", setting the native SRS to null");
+            LOGGER.warning("Failed to decode EPSG:" + nativeSrs + ", setting the native SRS to null");
         }
         featureType.setNumDecimals(8);
         featureType.getKeywords().add(new Keyword(name));

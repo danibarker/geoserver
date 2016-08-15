@@ -9,20 +9,30 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.geoserver.catalog.ProjectionPolicy;
 import org.geoserver.feature.RetypingFeatureCollection;
+import org.geotools.data.DataSourceException;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.FeatureReader;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
 import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.geometry.jts.GeometryCoordinateSequenceTransformer;
+import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
+import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 
 /**
@@ -109,10 +119,11 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
         throws IOException {
         filter = makeDefinitionFilter(filter);
 
+        reprojectGeometryToNative(value);
         store().modifyFeatures(type, value, filter);
     }
 
-    /**
+	/**
      * DOCUMENT ME!
      *
      * @param type DOCUMENT ME!
@@ -125,10 +136,11 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
         throws IOException {
         filter = makeDefinitionFilter(filter);
 
+        value = reprojectGeometryToNativeSingle(value);
         store().modifyFeatures(type, value, filter);
     }
 
-    /**
+	/**
      * DOCUMENT ME!
      *
      * @param reader DOCUMENT ME!
@@ -167,7 +179,7 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
     public void modifyFeatures(String name, Object attributeValue, Filter filter)
             throws IOException {
         filter = makeDefinitionFilter(filter);
-
+        attributeValue = reprojectGeometryToNativeSingle(attributeValue);
         store().modifyFeatures(name, attributeValue, filter);
         
     }
@@ -175,7 +187,7 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
     public void modifyFeatures(String[] names, Object[] attributeValues, Filter filter)
             throws IOException {
         filter = makeDefinitionFilter(filter);
-
+        reprojectGeometryToNative(attributeValues);
         store().modifyFeatures(names, attributeValues, filter);
         
     }
@@ -184,6 +196,7 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
             throws IOException {
         filter = makeDefinitionFilter(filter);
 
+        reprojectGeometryToNative(attributeValues);
         store().modifyFeatures(attributeNames, attributeValues, filter);
         
     }
@@ -192,7 +205,46 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
             throws IOException {
         filter = makeDefinitionFilter(filter);
 
+        attributeValue = reprojectGeometryToNativeSingle(attributeValue);
         store().modifyFeatures(attributeName, attributeValue, filter);
         
     }
+    
+    private Object reprojectGeometryToNativeSingle(Object value) throws DataSourceException {
+    	Object values[] = new Object[] { value };
+    	reprojectGeometryToNative(values);
+		return values[0];
+	}
+
+    private void reprojectGeometryToNative(Object[] values) throws DataSourceException {
+    	try {
+    		CoordinateReferenceSystem nativeCrs = getNativeCrsFromSource();
+	    	if ((declaredCRS != null) && (nativeCrs != null) && !CRS.equalsIgnoreMetadata(declaredCRS, nativeCrs) &&
+	    			(srsHandling == ProjectionPolicy.REPROJECT_TO_DECLARED)) {
+	    		GeometryCoordinateSequenceTransformer transformer = new GeometryCoordinateSequenceTransformer();
+	            MathTransform tx = CRS.findMathTransform(declaredCRS, nativeCrs);
+	            transformer.setCoordinateReferenceSystem(nativeCrs);
+	            transformer.setMathTransform(tx);
+	            
+		    	for (int i = 0; i < values.length; i++) {
+		    		if (values[i] instanceof Geometry) {
+		    			values[i] = transformer.transform((Geometry)values[i]);
+					}
+		    	}
+	    	}
+    	}
+    	catch(Exception e) {
+    		throw new DataSourceException(e);
+    	}
+	}
+
+	private CoordinateReferenceSystem getNativeCrsFromSource() {
+		CoordinateReferenceSystem nativeCrs = null;
+		GeometryDescriptor geometryDescriptor = source.getSchema().getGeometryDescriptor();
+		if (geometryDescriptor != null) {
+			nativeCrs = geometryDescriptor.getCoordinateReferenceSystem();
+		}
+		return nativeCrs;
+	}
+
 }

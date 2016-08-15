@@ -93,7 +93,7 @@ public class KMLTest extends WMSTestSupport {
                 39.9, 40.116, CRS.decode("EPSG:4326")));
         properties.put(LayerProperty.ENVELOPE, new ReferencedEnvelope(3045967, 3108482, 1206627,
                 1285209, CRS.decode("EPSG:2876")));
-        properties.put(LayerProperty.SRS, 2876);
+        properties.put(LayerProperty.DECLARED_SRS, 2876);
         testData.addVectorLayer(BOULDER, properties, "boulder.properties", getClass(), catalog);
     }
     

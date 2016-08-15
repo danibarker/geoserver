@@ -115,7 +115,7 @@ public class ShapeZipTest extends WFSTestSupport {
     protected void setUpInternal(SystemTestData dataDirectory) throws Exception {
         
     	Map params = new HashMap();
-        params.put(SystemTestData.LayerProperty.SRS, 4326);
+        params.put(SystemTestData.LayerProperty.DECLARED_SRS, 4326);
         dataDirectory.addVectorLayer(ALL_TYPES,
                 params, ShapeZipTest.class, getCatalog());
         dataDirectory.addVectorLayer(ALL_DOTS,

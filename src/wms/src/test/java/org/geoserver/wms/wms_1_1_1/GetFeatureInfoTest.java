@@ -119,7 +119,7 @@ public class GetFeatureInfoTest extends WMSTestSupport {
                 130.898939990319, -16.4491956225999, -16.4338185791628, CRS.decode("EPSG:4326")));
         properties.put(LayerProperty.ENVELOPE, new ReferencedEnvelope(130.875825803896,
                 130.898939990319, -16.4491956225999, -16.4338185791628, CRS.decode("EPSG:4326")));
-        properties.put(LayerProperty.SRS, 4326);
+        properties.put(LayerProperty.DECLARED_SRS, 4326);
 
         testData.addVectorLayer(POINT_TEST_2D, properties, "point_test_2d.properties",
                 GetFeatureInfoTest.class, catalog);
@@ -130,7 +130,7 @@ public class GetFeatureInfoTest extends WMSTestSupport {
         properties.put(LayerProperty.ENVELOPE, new ReferencedEnvelope3D(130.875825803896,
                 130.898939990319, -16.4491956225999, -16.4338185791628, 95.1442741322517,
                 98.1069524121285, CRS.decode("EPSG:4326")));
-        properties.put(LayerProperty.SRS, 4939);
+        properties.put(LayerProperty.DECLARED_SRS, 4939);
         testData.addVectorLayer(POINT_TEST_3D, properties, "point_test_3d.properties",
                 GetFeatureInfoTest.class, catalog);
     }

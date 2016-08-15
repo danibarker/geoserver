@@ -29,7 +29,7 @@ public class TolerantStartupTest extends GeoServerSystemTestSupport {
         Map<LayerProperty, Object> props = new HashMap<LayerProperty, Object>();
         props.put(LayerProperty.STYLE, styleName);
         props.put(LayerProperty.PROJECTION_POLICY, ProjectionPolicy.REPROJECT_TO_DECLARED);
-        props.put(LayerProperty.SRS, 123456);
+        props.put(LayerProperty.DECLARED_SRS, 123456);
         testData.setUpVectorLayer(name, props, name.getLocalPart() + ".properties", SystemTestData.class);
         
         testData.setUpVectorLayer(SystemTestData.BUILDINGS);
